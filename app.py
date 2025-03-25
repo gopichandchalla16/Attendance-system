@@ -6,7 +6,7 @@ import geocoder
 import pandas as pd
 from io import BytesIO
 from datetime import datetime, timedelta
-import face_recognition
+# import face_recognition  # Commented out due to installation issues
 import numpy as np
 import smtplib
 from email.mime.text import MIMEText
@@ -291,16 +291,16 @@ def main():
                     st.subheader("Record Attendance")
                     if st.session_state.get('logged_in_today', False):
                         with st.form("logout_form"):
-                            logout_photo = st.file_uploader("Upload Logout Photo", type=["jpg", "png"])
-                            submit_logout = st.form_submit_button("Logout")
-                        if submit_logout and logout_photo:
-                            process_logout(logout_photo)
+                            # logout_photo = st.file_uploader("Upload Logout Photo", type=["jpg", "png"])
+                            submit_logout = st.form_submit_button("Logout")  # Simplified without face recognition
+                        if submit_logout:
+                            process_logout(None)  # Pass None since no photo is required
                     else:
                         with st.form("login_form"):
-                            login_photo = st.file_uploader("Upload Login Photo", type=["jpg", "png"])
-                            submit_login = st.form_submit_button("Login")
-                        if submit_login and login_photo:
-                            process_login(login_photo)
+                            # login_photo = st.file_uploader("Upload Login Photo", type=["jpg", "png"])
+                            submit_login = st.form_submit_button("Login")  # Simplified without face recognition
+                        if submit_login:
+                            process_login(None)  # Pass None since no photo is required
 
                     st.subheader("Notifications")
                     for n in notifications:
@@ -417,26 +417,17 @@ def process_login(login_photo):
     if conn:
         try:
             cursor = conn.cursor(dictionary=True)
-            cursor.execute("SELECT face_image FROM users WHERE id = %s", (st.session_state['user_id'],))
-            user = cursor.fetchone()
-            if user:
-                registered_image = face_recognition.load_image_file(BytesIO(user['face_image']))
-                captured_image = face_recognition.load_image_file(login_photo)
-                registered_enc = face_recognition.face_encodings(registered_image)
-                captured_enc = face_recognition.face_encodings(captured_image)
-                if registered_enc and captured_enc and face_recognition.compare_faces([registered_enc[0]], captured_enc[0])[0]:
-                    login_time = datetime.now()
-                    g = geocoder.ip('me')
-                    latitude, longitude = g.latlng if g.latlng else (0.0, 0.0)
-                    cursor.execute("""
-                        INSERT INTO attendance (user_id, login_time, login_latitude, login_longitude) 
-                        VALUES (%s, %s, %s, %s)
-                    """, (st.session_state['user_id'], login_time, latitude, longitude))
-                    conn.commit()
-                    st.session_state['logged_in_today'] = True
-                    st.success("Login recorded")
-                else:
-                    st.error("Face verification failed")
+            # Simplified: No face recognition, just record login time and location
+            login_time = datetime.now()
+            g = geocoder.ip('me')
+            latitude, longitude = g.latlng if g.latlng else (0.0, 0.0)
+            cursor.execute("""
+                INSERT INTO attendance (user_id, login_time, login_latitude, login_longitude) 
+                VALUES (%s, %s, %s, %s)
+            """, (st.session_state['user_id'], login_time, latitude, longitude))
+            conn.commit()
+            st.session_state['logged_in_today'] = True
+            st.success("Login recorded")
         finally:
             cursor.close()
             conn.close()
@@ -446,28 +437,19 @@ def process_logout(logout_photo):
     if conn:
         try:
             cursor = conn.cursor(dictionary=True)
-            cursor.execute("SELECT face_image FROM users WHERE id = %s", (st.session_state['user_id'],))
-            user = cursor.fetchone()
-            if user:
-                registered_image = face_recognition.load_image_file(BytesIO(user['face_image']))
-                captured_image = face_recognition.load_image_file(logout_photo)
-                registered_enc = face_recognition.face_encodings(registered_image)
-                captured_enc = face_recognition.face_encodings(captured_image)
-                if registered_enc and captured_enc and face_recognition.compare_faces([registered_enc[0]], captured_enc[0])[0]:
-                    logout_time = datetime.now()
-                    g = geocoder.ip('me')
-                    latitude, longitude = g.latlng if g.latlng else (0.0, 0.0)
-                    cursor.execute("""
-                        UPDATE attendance 
-                        SET logout_time = %s, logout_latitude = %s, logout_longitude = %s 
-                        WHERE user_id = %s AND logout_time IS NULL 
-                        ORDER BY login_time DESC LIMIT 1
-                    """, (logout_time, latitude, longitude, st.session_state['user_id']))
-                    conn.commit()
-                    st.session_state['logged_in_today'] = False
-                    st.success("Logout recorded")
-                else:
-                    st.error("Face verification failed")
+            # Simplified: No face recognition, just record logout time and location
+            logout_time = datetime.now()
+            g = geocoder.ip('me')
+            latitude, longitude = g.latlng if g.latlng else (0.0, 0.0)
+            cursor.execute("""
+                UPDATE attendance 
+                SET logout_time = %s, logout_latitude = %s, logout_longitude = %s 
+                WHERE user_id = %s AND logout_time IS NULL 
+                ORDER BY login_time DESC LIMIT 1
+            """, (logout_time, latitude, longitude, st.session_state['user_id']))
+            conn.commit()
+            st.session_state['logged_in_today'] = False
+            st.success("Logout recorded")
         finally:
             cursor.close()
             conn.close()
