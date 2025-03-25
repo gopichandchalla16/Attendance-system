@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Attendance System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
+        }
+        body {
+            background: #eef2f7;
+            min-height: 100vh;
+            color: #333;
+            overflow-x: hidden;
+        }
+        .dashboard-wrapper {
+            display: flex;
+            min-height: 100vh;
+            width: 100%;
+        }
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #1e3a8a, #3b82f6);
+            color: #fff;
+            padding: 20px;
+            position: fixed;
+            height: 100%;
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .sidebar.collapsed {
+            transform: translateX(-280px);
+        }
+        .sidebar-header {
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .sidebar-header h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        .sidebar-nav {
+            list-style: none;
+            margin-top: 20px;
+        }
+        .sidebar-nav li {
+            margin: 10px 0;
+        }
+        .sidebar-nav li a {
+            color: #fff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border-radius: 6px;
+            transition: background 0.3s;
+        }
+        .sidebar-nav li a i {
+            margin-right: 12px;
+            font-size: 1.1rem;
+        }
+        .sidebar-nav li a:hover,
+        .sidebar-nav li.active a {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 30px;
+            background: #fff;
+            transition: margin-left 0.3s ease;
+        }
+        .main-content.expanded {
+            margin-left: 0;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1e3a8a;
+        }
+        .menu-toggle {
+            display: none;
+            font-size: 1.8rem;
+            color: #1e3a8a;
+            cursor: pointer;
+            padding: 10px;
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+        }
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+        .flash-messages p {
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 0.95rem;
+        }
+        .success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .card {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .card h2 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #1e3a8a;
+        }
+        .camera-container {
+            margin: 20px auto;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        video {
+            border-radius: 5px;
+            border: 2px solid #3b82f6;
+            width: 100%;
+            background: #000;
+        }
+        .btn {
+            background: #3b82f6;
+            color: #fff;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin: 5px;
+            display: inline-block;
+        }
+        .btn:hover {
+            background: #1e3a8a;
+        }
+        #submit-login-btn,
+        #submit-logout-btn {
+            background: #10b981;
+            display: none;
+        }
+        #submit-login-btn:hover,
+        #submit-logout-btn:hover {
+            background: #059669;
+        }
+        .btn.logout {
+            background: #ef4444;
+            width: 100%;
+        }
+        .btn.logout:hover {
+            background: #dc2626;
+        }
+        .profile-section {
+            text-align: center;
+            padding: 20px;
+        }
+        .profile-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin: 0 auto 20px;
+            border: 3px solid #3b82f6;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+        .profile-circle img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .profile-info {
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .profile-info p {
+            font-size: 1rem;
+            margin: 10px 0;
+        }
+        #edit-btn {
+            background: #f59e0b;
+        }
+        #edit-btn:hover {
+            background: #d97706;
+        }
+        #save-btn {
+            background: #10b981;
+            display: none;
+        }
+        #save-btn:hover {
+            background: #059669;
+        }
+        .profile-section input {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 0.95rem;
+        }
+        .profile-section input:disabled {
+            background: #f0f0f0;
+        }
+        #new-face-image {
+            display: none;
+        }
+        .holidays-list ul,
+        .leaves-list ul,
+        .policies-list ul,
+        .notifications-list ul,
+        .rota-list ul {
+            list-style: none;
+            padding: 0;
+        }
+        .holidays-list ul li,
+        .leaves-list ul li {
+            padding: 10px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+        }
+        .holidays-list ul li span.date {
+            color: #666;
+        }
+        .policies-list ul li,
+        .notifications-list ul li,
+        .rota-list ul li {
+            padding: 10px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .notifications-list ul li {
+            background: #f9fafb;
+        }
+        img {
+            max-width: 200px;
+            margin: 10px 0;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .attendance-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .attendance-table th,
+        .attendance-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .attendance-table th {
+            background: #3b82f6;
+            color: #fff;
+        }
+        .attendance-table td.present {
+            color: #10b981;
+            font-weight: bold;
+        }
+        .attendance-table td.absent {
+            color: #ef4444;
+            font-weight: bold;
+        }
+        /* Notification popup styling */
+        .notification-popup {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #d1fae5;
+            color: #065f46;
+            padding: 15px;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 2000;
+            display: none;
+            max-width: 300px;
+        }
+        .notification-popup.show {
+            display: block;
+        }
+        @media (max-width: 1024px) {
+            .sidebar { width: 240px; }
+            .main-content { margin-left: 240px; }
+            .sidebar.collapsed { transform: translateX(-240px); }
+        }
+        @media (max-width: 768px) {
+            .sidebar { width: 280px; transform: translateX(-280px); position: fixed; z-index: 1000; }
+            .sidebar.collapsed { transform: translateX(-280px); }
+            .sidebar:not(.collapsed) { transform: translateX(0); }
+            .main-content { margin-left: 0; }
+            .main-content.expanded { margin-left: 0; }
+            .menu-toggle { display: block; }
+            .header h1 { font-size: 1.5rem; }
+            .camera-container { width: 100%; }
+            video { width: 100%; height: auto; }
+            .profile-circle { width: 120px; height: 120px; }
+            .btn { width: 100%; margin: 5px 0; }
+            .notification-popup { max-width: 90%; right: 10px; }
+        }
+        @media (max-width: 480px) {
+            .header { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .card { padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+    {% if 'user_id' in session and not session.get('is_admin', False) %}
+    <div class="dashboard-wrapper">
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2>Attendance System</h2>
+            </div>
+            <ul class="sidebar-nav">
+                <li class="active" data-section="dashboard"><a><i class="fas fa-home"></i> Dashboard</a></li>
+                <li data-section="profile"><a><i class="fas fa-user"></i> Profile</a></li>
+                <li data-section="mailbox"><a href="https://mail.google.com" target="_blank"><i class="fas fa-envelope"></i> My Mailbox</a></li>
+                <li data-section="leaves"><a><i class="fas fa-calendar-alt"></i> My Leaves</a></li>
+                <li data-section="policies"><a><i class="fas fa-file-alt"></i> Policies</a></li>
+                <li data-section="holidays"><a><i class="fas fa-calendar-day"></i> Holidays</a></li>
+                <li data-section="notifications"><a><i class="fas fa-bell"></i> Notifications</a></li>
+                <li data-section="weekly-rota"><a><i class="fas fa-calendar-week"></i> Weekly Rota</a></li>
+                <li><a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+            </ul>
+        </nav>
+        <main class="main-content">
+            <div class="header">
+                <h1>Dashboard</h1>
+                <div class="menu-toggle"><i class="fas fa-bars"></i></div>
+            </div>
+
+            <div class="flash-messages">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <p class="{{ category }}">{{ message }}</p>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+            </div>
+
+            <div id="notification-popup" class="notification-popup"></div>
+
+            <section class="content-section active" id="dashboard">
+                <div class="card">
+                    <h2>Welcome, {{ session['username']|default('User') }}</h2>
+                    <p><strong>Last Login:</strong> {{ last_login|strftime('%Y-%m-%d %H:%M:%S') if last_login else 'N/A' }}</p>
+                    <p><strong>Last Logout:</strong> {{ last_logout|strftime('%Y-%m-%d %H:%M:%S') if last_logout else 'N/A' }}</p>
+                    {% if last_login and last_logout %}
+                        <p><strong>Time Worked:</strong> {{ ((last_logout - last_login).total_seconds() / 3600)|round(2) }} hours</p>
+                    {% endif %}
+                    <div class="camera-container">
+                        <video id="video" width="320" height="240" autoplay playsinline></video>
+                        <button id="start-camera-btn" class="btn">Start Camera</button>
+                        <button id="capture-login-btn" class="btn" {% if not can_login %}disabled{% endif %}>Capture Login</button>
+                        <button id="capture-logout-btn" class="btn" {% if can_login or not attendance_submitted %}disabled{% endif %}>Capture Logout</button>
+                        <canvas id="canvas" style="display: none;"></canvas>
+                        <button id="submit-login-btn" class="btn" style="display: none;">Submit Login</button>
+                        <button id="submit-logout-btn" class="btn" style="display: none;">Submit Logout</button>
+                    </div>
+                    <h2>Your Attendance (Last 30 Days)</h2>
+                    <table class="attendance-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for record in attendance_records %}
+                                <tr>
+                                    <td>{{ record.date|strftime('%Y-%m-%d') }}</td>
+                                    <td class="{{ 'present' if record.present else 'absent' }}">{{ 'Present' if record.present else 'Absent' }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="content-section" id="profile">
+                <div class="card profile-section">
+                    <h2>Your Profile</h2>
+                    {% if user_face_image_base64 %}
+                        <div class="profile-circle">
+                            <img id="profile-pic" src="data:image/jpeg;base64,{{ user_face_image_base64 }}" alt="Profile Picture">
+                        </div>
+                    {% else %}
+                        <div class="profile-circle">
+                            <img id="profile-pic" src="{{ url_for('static', filename='default_profile.jpg') }}" alt="Profile Picture">
+                        </div>
+                    {% endif %}
+                    <div class="profile-info">
+                        <p><strong>Email:</strong> <span id="email-display">{{ user_email }}</span></p>
+                        <input type="email" id="email" value="{{ user_email }}" disabled>
+                        <p><strong>Position:</strong> {{ user_position }}</p>
+                        <input type="text" id="position" value="{{ user_position }}" disabled>
+                        <p><strong>Joined:</strong> {{ created_at|strftime('%Y-%m-%d') }}</p>
+                        <input type="file" id="new-face-image" accept="image/*">
+                        <button id="edit-btn" class="btn">Edit Profile</button>
+                        <button id="save-btn" class="btn">Save Changes</button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="content-section" id="leaves">
+                <div class="card leaves-list">
+                    <h2>My Leaves</h2>
+                    <ul>
+                        <li>No leave requests available yet. <span class="date">-</span></li>
+                    </ul>
+                </div>
+            </section>
+
+            <section class="content-section" id="policies">
+                <div class="card policies-list">
+                    <h2>Company Policies</h2>
+                    <ul>
+                        <li>Work hours: 9 AM - 6 PM</li>
+                        <li>Leave policy: 15 days annual leave</li>
+                        <li>Remote work: Allowed with prior approval</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section class="content-section" id="holidays">
+                <div class="card holidays-list">
+                    <h2>Holidays</h2>
+                    <ul>
+                        <li>New Year's Day <span class="date">2025-01-01</span></li>
+                        <li>Christmas <span class="date">2025-12-25</span></li>
+                    </ul>
+                </div>
+            </section>
+
+            <section class="content-section" id="notifications">
+                <div class="card notifications-list">
+                    <h2>Notifications</h2>
+                    <ul>
+                        {% if notifications %}
+                            {% for notification in notifications %}
+                                <li>{{ notification.message }} <span class="date">{{ notification.created_at|strftime('%Y-%m-%d %H:%M:%S') }}</span></li>
+                            {% endfor %}
+                        {% else %}
+                            <li>No new notifications.</li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </section>
+
+            <section class="content-section" id="weekly-rota">
+                <div class="card rota-list">
+                    <h2>Weekly Rota</h2>
+                    {% if rota_image_base64 %}
+                        <p><strong>Current Weekly Rota:</strong></p>
+                        <img src="data:image/jpeg;base64,{{ rota_image_base64 }}" alt="Weekly Rota" style="max-width: 100%;">
+                    {% else %}
+                        <p>No weekly rota available yet.</p>
+                    {% endif %}
+                </div>
+            </section>
+        </main>
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 50px;">
+        <h1>Access Denied</h1>
+        <p>Please <a href="{{ url_for('login') }}">login</a> to access the dashboard.</p>
+    </div>
+    {% endif %}
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const sidebar = document.querySelector('.sidebar');
+            const mainContent = document.querySelector('.main-content');
+            const menuToggle = document.querySelector('.menu-toggle');
+            const navItems = document.querySelectorAll('.sidebar-nav li[data-section]');
+            const sections = document.querySelectorAll('.content-section');
+
+            menuToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('collapsed');
+                mainContent.classList.toggle('expanded');
+            });
+
+            document.addEventListener('click', (e) => {
+                if (window.innerWidth <= 768 && !sidebar.contains(e.target) && !menuToggle.contains(e.target) && !sidebar.classList.contains('collapsed')) {
+                    sidebar.classList.add('collapsed');
+                    mainContent.classList.remove('expanded');
+                }
+            });
+
+            if (window.innerWidth > 768) {
+                sidebar.classList.remove('collapsed');
+                mainContent.classList.remove('expanded');
+            }
+
+            navItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    const sectionId = item.getAttribute('data-section');
+                    if (sectionId) {
+                        navItems.forEach(i => i.classList.remove('active'));
+                        item.classList.add('active');
+                        sections.forEach(section => section.classList.remove('active'));
+                        document.getElementById(sectionId).classList.add('active');
+                        if (window.innerWidth <= 768) {
+                            sidebar.classList.add('collapsed');
+                            mainContent.classList.remove('expanded');
+                        }
+                    }
+                });
+            });
+
+            // Camera functionality
+            const video = document.getElementById('video');
+            const canvas = document.getElementById('canvas');
+            const startCameraBtn = document.getElementById('start-camera-btn');
+            const captureLoginBtn = document.getElementById('capture-login-btn');
+            const captureLogoutBtn = document.getElementById('capture-logout-btn');
+            const submitLoginBtn = document.getElementById('submit-login-btn');
+            const submitLogoutBtn = document.getElementById('submit-logout-btn');
+            let stream = null;
+
+            // Start camera
+            startCameraBtn.addEventListener('click', async () => {
+                try {
+                    console.log('Requesting camera access...');
+                    stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                    video.srcObject = stream;
+                    video.play();
+                    console.log('Camera started successfully');
+                    startCameraBtn.style.display = 'none';
+                    if (captureLoginBtn.disabled) {
+                        captureLogoutBtn.style.display = 'inline-block';
+                    } else {
+                        captureLoginBtn.style.display = 'inline-block';
+                    }
+                } catch (err) {
+                    console.error('Error accessing camera:', err);
+                    alert(`Failed to start camera: ${err.message}. Please ensure camera permissions are granted.`);
+                }
+            });
+
+            // Capture login photo
+            captureLoginBtn.addEventListener('click', () => {
+                if (!video.srcObject) {
+                    alert('Please start the camera first.');
+                    return;
+                }
+                console.log('Capturing login photo...');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                const context = canvas.getContext('2d');
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                console.log('Login photo captured');
+                captureLoginBtn.style.display = 'none';
+                submitLoginBtn.style.display = 'inline-block';
+            });
+
+            // Capture logout photo
+            captureLogoutBtn.addEventListener('click', () => {
+                if (!video.srcObject) {
+                    alert('Please start the camera first.');
+                    return;
+                }
+                console.log('Capturing logout photo...');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                const context = canvas.getContext('2d');
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                console.log('Logout photo captured');
+                captureLogoutBtn.style.display = 'none';
+                submitLogoutBtn.style.display = 'inline-block';
+            });
+
+            // Submit login photo
+            submitLoginBtn.addEventListener('click', () => {
+                console.log('Submitting login photo...');
+                canvas.toBlob(blob => {
+                    if (!blob) {
+                        console.error('Failed to create blob from canvas');
+                        alert('Failed to capture photo. Please try again.');
+                        return;
+                    }
+                    const formData = new FormData();
+                    formData.append('face_image', blob, 'login.jpg');
+                    fetch('/login_photo', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`Server responded with status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Login response:', data);
+                        alert(data.message);
+                        if (data.success) {
+                            captureLoginBtn.disabled = true;
+                            captureLoginBtn.style.display = 'none';
+                            captureLogoutBtn.disabled = false;
+                            captureLogoutBtn.style.display = 'inline-block';
+                            stopCamera();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error submitting login:', error);
+                        alert(`Error submitting login: ${error.message}`);
+                    });
+                }, 'image/jpeg');
+            });
+
+            // Submit logout photo
+            submitLogoutBtn.addEventListener('click', () => {
+                console.log('Submitting logout photo...');
+                canvas.toBlob(blob => {
+                    if (!blob) {
+                        console.error('Failed to create blob from canvas');
+                        alert('Failed to capture photo. Please try again.');
+                        return;
+                    }
+                    const formData = new FormData();
+                    formData.append('face_image', blob, 'logout.jpg');
+                    fetch('/logout_photo', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`Server responded with status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Logout response:', data);
+                        alert(data.message);
+                        if (data.success) {
+                            captureLogoutBtn.disabled = true;
+                            captureLogoutBtn.style.display = 'none';
+                            captureLoginBtn.disabled = false;
+                            captureLoginBtn.style.display = 'inline-block';
+                            stopCamera();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error submitting logout:', error);
+                        alert(`Error submitting logout: ${error.message}`);
+                    });
+                }, 'image/jpeg');
+            });
+
+            // Stop camera function
+            function stopCamera() {
+                if (stream) {
+                    stream.getTracks().forEach(track => {
+                        track.stop();
+                        console.log('Camera stream stopped');
+                    });
+                    video.srcObject = null;
+                    stream = null;
+                    startCameraBtn.style.display = 'inline-block';
+                    submitLoginBtn.style.display = 'none';
+                    submitLogoutBtn.style.display = 'none';
+                }
+            }
+
+            // Profile editing
+            const editBtn = document.getElementById('edit-btn');
+            const saveBtn = document.getElementById('save-btn');
+            const emailInput = document.getElementById('email');
+            const positionInput = document.getElementById('position');
+            const newFaceImageInput = document.getElementById('new-face-image');
+            const profilePic = document.getElementById('profile-pic');
+            const emailDisplay = document.getElementById('email-display');
+
+            editBtn.addEventListener('click', () => {
+                emailInput.disabled = false;
+                positionInput.disabled = false;
+                newFaceImageInput.style.display = 'block';
+                editBtn.style.display = 'none';
+                saveBtn.style.display = 'inline-block';
+            });
+
+            newFaceImageInput.addEventListener('change', (event) => {
+                const file = event.target.files[0];
+                if (file) {
+                    profilePic.src = URL.createObjectURL(file);
+                }
+            });
+
+            saveBtn.addEventListener('click', () => {
+                const formData = new FormData();
+                formData.append('email', emailInput.value);
+                formData.append('position', positionInput.value);
+                if (newFaceImageInput.files[0]) {
+                    formData.append('face_image', newFaceImageInput.files[0]);
+                }
+                fetch('/update_profile', { method: 'POST', body: formData })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('Profile updated successfully!');
+                            emailDisplay.textContent = emailInput.value;
+                            emailInput.disabled = true;
+                            positionInput.disabled = true;
+                            newFaceImageInput.style.display = 'none';
+                            saveBtn.style.display = 'none';
+                            editBtn.style.display = 'inline-block';
+                            location.reload();
+                        } else {
+                            alert(data.message);
+                        }
+                    })
+                    .catch(error => alert('Error updating profile: ' + error.message));
+            });
+
+            // Polling for new notifications
+            function checkNotifications() {
+                fetch('/check_notifications')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success && data.message) {
+                            const popup = document.getElementById('notification-popup');
+                            popup.textContent = data.message;
+                            popup.classList.add('show');
+                            setTimeout(() => {
+                                popup.classList.remove('show');
+                            }, 5000); // Hide after 5 seconds
+                        }
+                    })
+                    .catch(error => console.error('Error checking notifications:', error));
+            }
+
+            // Check notifications every 10 seconds
+            setInterval(checkNotifications, 10000);
+            checkNotifications(); // Initial check on page load
+        });
+    </script>
+</body>
+</html>

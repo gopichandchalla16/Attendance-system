@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Attendance System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Same CSS as before */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
+        }
+        body {
+            background: #eef2f7;
+            min-height: 100vh;
+            color: #333;
+            overflow-x: hidden;
+        }
+        .admin-wrapper {
+            display: flex;
+            min-height: 100vh;
+            width: 100%;
+        }
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #1e3a8a, #3b82f6);
+            color: #fff;
+            padding: 20px;
+            position: fixed;
+            height: 100%;
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .sidebar.collapsed {
+            transform: translateX(-280px);
+        }
+        .sidebar-header {
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .sidebar-header h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        .profile-section {
+            margin: 20px 0;
+            text-align: center;
+        }
+        .profile-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin: 0 auto 10px;
+            border: 3px solid #fff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+        .profile-circle img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .profile-info {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 15px;
+        }
+        .profile-info p {
+            font-size: 0.9rem;
+            margin: 8px 0;
+            color: #fff;
+        }
+        .profile-info input {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: none;
+            border-radius: 4px;
+            display: none;
+            font-size: 0.9rem;
+        }
+        .profile-info input.active {
+            display: block;
+        }
+        .profile-info button {
+            background: #10b981;
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background 0.3s;
+        }
+        .profile-info button:hover {
+            background: #059669;
+        }
+        #edit-profile-btn {
+            background: #f59e0b;
+        }
+        #edit-profile-btn:hover {
+            background: #d97706;
+        }
+        #save-profile-btn {
+            display: none;
+        }
+        .sidebar-nav {
+            list-style: none;
+            margin-top: 20px;
+        }
+        .sidebar-nav li {
+            margin: 10px 0;
+        }
+        .sidebar-nav li a {
+            color: #fff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border-radius: 6px;
+            transition: background 0.3s;
+        }
+        .sidebar-nav li a i {
+            margin-right: 12px;
+            font-size: 1.1rem;
+        }
+        .sidebar-nav li a:hover,
+        .sidebar-nav li.active a {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 30px;
+            background: #fff;
+            transition: margin-left 0.3s ease;
+        }
+        .main-content.expanded {
+            margin-left: 0;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1e3a8a;
+        }
+        .menu-toggle {
+            display: none;
+            font-size: 1.8rem;
+            color: #1e3a8a;
+            cursor: pointer;
+            padding: 10px;
+        }
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+        .flash-messages p {
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 0.95rem;
+        }
+        .success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .search-bar {
+            margin-bottom: 30px;
+        }
+        .search-bar form {
+            display: flex;
+            gap: 10px;
+        }
+        .search-bar input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        .search-bar input:focus {
+            border-color: #3b82f6;
+        }
+        .search-bar button {
+            background: #3b82f6;
+            color: #fff;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .search-bar button:hover {
+            background: #1e3a8a;
+        }
+        .card {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #1e3a8a;
+        }
+        .card h4 {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: #374151;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+        th, td {
+            padding: 14px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        th {
+            background: #3b82f6;
+            color: #fff;
+            font-weight: 500;
+        }
+        tr:hover {
+            background: #f9fafb;
+        }
+        img {
+            max-width: 80px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .hours-red {
+            color: #ef4444;
+            font-weight: 500;
+        }
+        .hours-green {
+            color: #10b981;
+            font-weight: 500;
+        }
+        .edit-user-btn, .save-user-btn {
+            background: #f59e0b;
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .edit-user-btn:hover, .save-user-btn:hover {
+            background: #d97706;
+        }
+        .save-user-btn {
+            background: #10b981;
+        }
+        .save-user-btn:hover {
+            background: #059669;
+        }
+        .rota-upload {
+            margin-top: 20px;
+        }
+        .rota-upload input[type="file"] {
+            display: block;
+            margin-bottom: 10px;
+        }
+        .attendance-view-links a {
+            text-decoration: none;
+            color: #333;
+        }
+        .attendance-view-links a:hover {
+            color: #3b82f6;
+        }
+        .notification-form {
+            margin-top: 20px;
+        }
+        .notification-form textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            resize: vertical;
+        }
+        .notification-form button {
+            background: #10b981;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .notification-form button:hover {
+            background: #059669;
+        }
+        @media (max-width: 1024px) {
+            .sidebar { width: 240px; }
+            .main-content { margin-left: 240px; }
+            .sidebar.collapsed { transform: translateX(-240px); }
+        }
+        @media (max-width: 768px) {
+            .sidebar { width: 280px; transform: translateX(-280px); position: fixed; z-index: 1000; }
+            .sidebar.collapsed { transform: translateX(-280px); }
+            .sidebar:not(.collapsed) { transform: translateX(0); }
+            .main-content { margin-left: 0; }
+            .main-content.expanded { margin-left: 0; }
+            .menu-toggle { display: block; }
+            .header h1 { font-size: 1.5rem; }
+            table { font-size: 0.85rem; }
+            img { max-width: 60px; }
+        }
+        @media (max-width: 480px) {
+            .header { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .search-bar form { flex-direction: column; }
+            .search-bar button { width: 100%; }
+            .card { padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-wrapper">
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2>Admin Dashboard</h2>
+            </div>
+            <div class="profile-section">
+                {% if admin_profile.face_image_base64 %}
+                <div class="profile-circle">
+                    <img id="profile-pic" src="data:image/jpeg;base64,{{ admin_profile.face_image_base64 }}" alt="Admin Profile">
+                </div>
+                {% else %}
+                <div class="profile-circle">
+                    <img id="profile-pic" src="{{ url_for('static', filename='default_profile.jpg') }}" alt="Admin Profile">
+                </div>
+                {% endif %}
+                <div class="profile-info">
+                    <p><strong>Name:</strong> <span id="username-display">{{ admin_profile.username }}</span></p>
+                    <input type="text" id="username" value="{{ admin_profile.username }}" placeholder="Username">
+                    <p><strong>Email:</strong> <span id="email-display">{{ admin_profile.email }}</span></p>
+                    <input type="email" id="email" value="{{ admin_profile.email }}" placeholder="Email">
+                    <p><strong>Position:</strong> {{ admin_profile.position }}</p>
+                    <input type="text" id="position" value="{{ admin_profile.position }}" placeholder="Position">
+                    <input type="file" id="new-face-image" accept="image/*" style="display: none;">
+                    <button id="edit-profile-btn">Edit Profile</button>
+                    <button id="save-profile-btn">Save Changes</button>
+                </div>
+            </div>
+            <ul class="sidebar-nav">
+                <li data-section="dashboard" class="active"><a><i class="fas fa-home"></i> Dashboard</a></li>
+                <li data-section="users"><a><i class="fas fa-users"></i> Manage Users</a></li>
+                <li data-section="attendance"><a><i class="fas fa-clock"></i> Attendance Records</a></li>
+                <li data-section="weekly-rota"><a><i class="fas fa-calendar-week"></i> Weekly Rota</a></li>
+                <li data-section="notifications"><a><i class="fas fa-bell"></i> Send Notification</a></li>
+                <li><a href="{{ url_for('view_excel') }}"><i class="fas fa-table"></i> View Excel</a></li>
+                <li><a href="{{ url_for('export') }}"><i class="fas fa-download"></i> Export Data</a></li>
+                <li><a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+            </ul>
+        </nav>
+        <main class="main-content">
+            <div class="header">
+                <h1>Admin Dashboard</h1>
+                <div class="menu-toggle"><i class="fas fa-bars"></i></div>
+            </div>
+            <div class="flash-messages">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <p class="{{ category }}">{{ message }}</p>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+            </div>
+
+            <section class="content-section active" id="dashboard">
+                <div class="card">
+                    <h3>Attendance Overview</h3>
+                    <div class="search-bar">
+                        <form method="GET">
+                            <input type="text" name="search" placeholder="Search by username" value="{{ search_query }}">
+                            <button type="submit">Search</button>
+                        </form>
+                    </div>
+                    <p><strong>View:</strong>
+                        <span class="attendance-view-links">
+                            <a href="{{ url_for('admin', view='daily') }}" {% if view == 'daily' %}style="font-weight: bold;"{% endif %}>Daily</a> |
+                            <a href="{{ url_for('admin', view='weekly') }}" {% if view == 'weekly' %}style="font-weight: bold;"{% endif %}>Weekly</a> |
+                            <a href="{{ url_for('admin', view='monthly') }}" {% if view == 'monthly' %}style="font-weight: bold;"{% endif %}>Monthly</a> |
+                            <a href="{{ url_for('admin', view='yearly') }}" {% if view == 'yearly' %}style="font-weight: bold;"{% endif %}>Yearly</a>
+                        </span>
+                    </p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Position</th>
+                                <th>Login Time</th>
+                                <th>Login Location</th>
+                                <th>Logout Time</th>
+                                <th>Logout Location</th>
+                                <th>Hours Worked</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if data %}
+                                {% for record in data %}
+                                    <tr>
+                                        <td>{{ record.username }}</td>
+                                        <td>{{ record.position }}</td>
+                                        <td>{{ record.login_time|strftime('%Y-%m-%d %H:%M:%S') if record.login_time else 'N/A' }}</td>
+                                        <td>
+                                            {% if record.login_latitude is not none and record.login_longitude is not none %}
+                                                {{ record.login_latitude|round(4) }}, {{ record.login_longitude|round(4) }}
+                                            {% else %}
+                                                N/A
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ record.logout_time|strftime('%Y-%m-%d %H:%M:%S') if record.logout_time else 'N/A' }}</td>
+                                        <td>
+                                            {% if record.logout_latitude is not none and record.logout_longitude is not none %}
+                                                {{ record.logout_latitude|round(4) }}, {{ record.logout_longitude|round(4) }}
+                                            {% else %}
+                                                N/A
+                                            {% endif %}
+                                        </td>
+                                        <td class="hours-{{ record.color }}">{{ record.hours_worked }}</td>
+                                    </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr><td colspan="7">No records found.</td></tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="content-section" id="users">
+                <div class="card">
+                    <h3>Manage Users</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Position</th>
+                                <th>Face Image</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users %}
+                                <tr id="user-{{ user.id }}">
+                                    <td>{{ user.id }}</td>
+                                    <td><span class="username-display">{{ user.username }}</span><input type="text" class="username-input" value="{{ user.username }}" style="display: none;"></td>
+                                    <td><span class="email-display">{{ user.email }}</span><input type="email" class="email-input" value="{{ user.email }}" style="display: none;"></td>
+                                    <td><span class="position-display">{{ user.position }}</span><input type="text" class="position-input" value="{{ user.position }}" style="display: none;"></td>
+                                    <td>
+                                        {% if user.face_image_base64 %}
+                                            <img src="data:image/jpeg;base64,{{ user.face_image_base64 }}" alt="User Image" class="user-pic">
+                                            <input type="file" class="face-image-input" accept="image/*" style="display: none;">
+                                        {% else %}
+                                            N/A
+                                            <input type="file" class="face-image-input" accept="image/*" style="display: none;">
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <button class="edit-user-btn" data-user-id="{{ user.id }}">Edit</button>
+                                        <button class="save-user-btn" data-user-id="{{ user.id }}" style="display: none;">Save</button>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="content-section" id="attendance">
+                <div class="card">
+                    <h3>All Attendance Records</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Position</th>
+                                <th>Login Time</th>
+                                <th>Login Location</th>
+                                <th>Logout Time</th>
+                                <th>Logout Location</th>
+                                <th>Hours Worked</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if all_attendance %}
+                                {% for record in all_attendance %}
+                                    <tr>
+                                        <td>{{ record.username }}</td>
+                                        <td>{{ record.position }}</td>
+                                        <td>{{ record.login_time|strftime('%Y-%m-%d %H:%M:%S') if record.login_time else 'N/A' }}</td>
+                                        <td>
+                                            {% if record.login_latitude is not none and record.login_longitude is not none %}
+                                                {{ record.login_latitude|round(4) }}, {{ record.login_longitude|round(4) }}
+                                            {% else %}
+                                                N/A
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ record.logout_time|strftime('%Y-%m-%d %H:%M:%S') if record.logout_time else 'N/A' }}</td>
+                                        <td>
+                                            {% if record.logout_latitude is not none and record.logout_longitude is not none %}
+                                                {{ record.logout_latitude|round(4) }}, {{ record.logout_longitude|round(4) }}
+                                            {% else %}
+                                                N/A
+                                            {% endif %}
+                                        </td>
+                                        <td class="hours-{{ record.color }}">{{ record.hours_worked }}</td>
+                                    </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="7">No records found.</td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="content-section" id="weekly-rota">
+                <div class="card">
+                    <h3>Weekly Rota</h3>
+                    <div class="rota-upload">
+                        <input type="file" id="rota-image" accept="image/*">
+                        <button id="upload-rota-btn" class="btn">Upload Rota</button>
+                    </div>
+                    {% if rota_image_base64 %}
+                        <p><strong>Current Weekly Rota:</strong></p>
+                        <img src="data:image/jpeg;base64,{{ rota_image_base64 }}" alt="Weekly Rota" class="rota-image">
+                    {% else %}
+                        <p>No weekly rota uploaded yet.</p>
+                    {% endif %}
+                </div>
+            </section>
+
+            <section class="content-section" id="notifications">
+                <div class="card">
+                    <h3>Send Notification to All Users</h3>
+                    <div class="notification-form">
+                        <textarea id="notification-message" placeholder="Enter your message here" rows="4"></textarea>
+                        <button id="send-notification-btn">Send Notification</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const sidebar = document.querySelector('.sidebar');
+            const mainContent = document.querySelector('.main-content');
+            const menuToggle = document.querySelector('.menu-toggle');
+            const navItems = document.querySelectorAll('.sidebar li[data-section]');
+            const sections = document.querySelectorAll('.content-section');
+
+            menuToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('collapsed');
+                mainContent.classList.toggle('expanded');
+            });
+
+            document.addEventListener('click', (e) => {
+                if (window.innerWidth <= 768 && !sidebar.contains(e.target) && !menuToggle.contains(e.target) && !sidebar.classList.contains('collapsed')) {
+                    sidebar.classList.add('collapsed');
+                    mainContent.classList.remove('expanded');
+                }
+            });
+
+            if (window.innerWidth > 768) {
+                sidebar.classList.remove('collapsed');
+                mainContent.classList.remove('expanded');
+            }
+      
+            navItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    const sectionId = item.getAttribute('data-section');
+                    if (sectionId) {
+                        navItems.forEach(i => i.classList.remove('active'));
+                        item.classList.add('active');
+                        sections.forEach(section => section.classList.remove('active'));
+                        const targetSection = document.getElementById(sectionId);
+                        targetSection.classList.add('active');
+                        
+                        targetSection.scrollIntoView({ 
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+
+                        if (window.innerWidth <= 768) {
+                            sidebar.classList.add('collapsed');
+                            mainContent.classList.remove('expanded');
+                        }
+                    }
+                });
+            });
+
+            // Admin Profile Edit
+            const editProfileBtn = document.getElementById('edit-profile-btn');
+            const saveProfileBtn = document.getElementById('save-profile-btn');
+            const usernameInput = document.getElementById('username');
+            const emailInput = document.getElementById('email');
+            const positionInput = document.getElementById('position');
+            const newFaceImageInput = document.getElementById('new-face-image');
+            const profilePic = document.getElementById('profile-pic');
+            const usernameDisplay = document.getElementById('username-display');
+            const emailDisplay = document.getElementById('email-display');
+
+            editProfileBtn.addEventListener('click', () => {
+                usernameInput.classList.add('active');
+                emailInput.classList.add('active');
+                positionInput.classList.add('active');
+                newFaceImageInput.style.display = 'block';
+                usernameDisplay.style.display = 'none';
+                emailDisplay.style.display = 'none';
+                editProfileBtn.style.display = 'none';
+                saveProfileBtn.style.display = 'block';
+            });
+
+            newFaceImageInput.addEventListener('change', (event) => {
+                const file = event.target.files[0];
+                if (file) {
+                    profilePic.src = URL.createObjectURL(file);
+                }
+            });
+
+            saveProfileBtn.addEventListener('click', () => {
+                const formData = new FormData();
+                formData.append('username', usernameInput.value);
+                formData.append('email', emailInput.value);
+                formData.append('position', positionInput.value);
+                if (newFaceImageInput.files[0]) {
+                    formData.append('face_image', newFaceImageInput.files[0]);
+                }
+                fetch('/update_profile', { method: 'POST', body: formData })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('Profile updated successfully!');
+                            usernameDisplay.textContent = usernameInput.value;
+                            emailDisplay.textContent = emailInput.value;
+                            usernameInput.classList.remove('active');
+                            emailInput.classList.remove('active');
+                            positionInput.classList.remove('active');
+                            newFaceImageInput.style.display = 'none';
+                            usernameDisplay.style.display = 'inline';
+                            emailDisplay.style.display = 'inline';
+                            editProfileBtn.style.display = 'block';
+                            saveProfileBtn.style.display = 'none';
+                            location.reload();
+                        } else {
+                            alert(data.message);
+                        }
+                    })
+                    .catch(error => alert('Error updating profile: ' + error.message));
+            });
+
+            // Manage Users Edit
+            document.querySelectorAll('.edit-user-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const userId = btn.getAttribute('data-user-id');
+                    const row = document.getElementById(`user-${userId}`);
+                    row.querySelector('.username-display').style.display = 'none';
+                    row.querySelector('.email-display').style.display = 'none';
+                    row.querySelector('.position-display').style.display = 'none';
+                    row.querySelector('.username-input').style.display = 'block';
+                    row.querySelector('.email-input').style.display = 'block';
+                    row.querySelector('.position-input').style.display = 'block';
+                    row.querySelector('.face-image-input').style.display = 'block';
+                    btn.style.display = 'none';
+                    row.querySelector('.save-user-btn').style.display = 'block';
+                });
+            });
+
+            document.querySelectorAll('.save-user-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const userId = btn.getAttribute('data-user-id');
+                    const row = document.getElementById(`user-${userId}`);
+                    const formData = new FormData();
+                    formData.append('username', row.querySelector('.username-input').value);
+                    formData.append('email', row.querySelector('.email-input').value);
+                    formData.append('position', row.querySelector('.position-input').value);
+                    const faceImageInput = row.querySelector('.face-image-input');
+                    if (faceImageInput.files[0]) {
+                        formData.append('face_image', faceImageInput.files[0]);
+                    }
+                    fetch(`/admin_update_user/${userId}`, { method: 'POST', body: formData })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                alert('User updated successfully!');
+                                row.querySelector('.username-display').textContent = row.querySelector('.username-input').value;
+                                row.querySelector('.email-display').textContent = row.querySelector('.email-input').value;
+                                row.querySelector('.position-display').textContent = row.querySelector('.position-input').value;
+                                if (faceImageInput.files[0]) {
+                                    row.querySelector('.user-pic').src = URL.createObjectURL(faceImageInput.files[0]);
+                                }
+                                row.querySelector('.username-display').style.display = 'block';
+                                row.querySelector('.email-display').style.display = 'block';
+                                row.querySelector('.position-display').style.display = 'block';
+                                row.querySelector('.username-input').style.display = 'none';
+                                row.querySelector('.email-input').style.display = 'none';
+                                row.querySelector('.position-input').style.display = 'none';
+                                row.querySelector('.face-image-input').style.display = 'none';
+                                btn.style.display = 'none';
+                                row.querySelector('.edit-user-btn').style.display = 'block';
+                            } else {
+                                alert(data.message);
+                            }
+                        })
+                        .catch(error => alert('Error updating user: ' + error.message));
+                });
+            });
+
+            // Weekly Rota Upload
+            const uploadRotaBtn = document.getElementById('upload-rota-btn');
+            const rotaImageInput = document.getElementById('rota-image');
+            uploadRotaBtn.addEventListener('click', () => {
+                if (rotaImageInput.files[0]) {
+                    const formData = new FormData();
+                    formData.append('rota_image', rotaImageInput.files[0]);
+                    fetch('/upload_rota', { method: 'POST', body: formData })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                alert('Rota uploaded successfully!');
+                                location.reload();
+                            } else {
+                                alert(data.message);
+                            }
+                        })
+                        .catch(error => alert('Error uploading rota: ' + error.message));
+                } else {
+                    alert('Please select an image to upload.');
+                }
+            });
+
+            // Send Notification
+            const sendNotificationBtn = document.getElementById('send-notification-btn');
+            const notificationMessage = document.getElementById('notification-message');
+            sendNotificationBtn.addEventListener('click', () => {
+                if (notificationMessage.value.trim()) {
+                    const formData = new FormData();
+                    formData.append('message', notificationMessage.value.trim());
+                    fetch('/send_notification', { method: 'POST', body: formData })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                alert('Notification sent successfully!');
+                                notificationMessage.value = '';
+                            } else {
+                                alert(data.message);
+                            }
+                        })
+                        .catch(error => alert('Error sending notification: ' + error.message));
+                } else {
+                    alert('Please enter a message.');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,152 @@
+/* General Styles */
+body {
+    font-family: 'Arial', sans-serif;
+    background: #f4f7f6;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.container {
+    width: 90%;
+    max-width: 400px;
+    padding: 20px;
+}
+
+.form-box {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+h2 {
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.input-group {
+    margin-bottom: 15px;
+}
+
+input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+.btn {
+    width: 100%;
+    padding: 12px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.btn:hover {
+    background: #0056b3;
+}
+
+.redirect {
+    margin-top: 15px;
+    font-size: 14px;
+}
+
+.redirect a {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.redirect a:hover {
+    text-decoration: underline;
+}
+
+.flash-messages {
+    margin-bottom: 15px;
+}
+
+.flash-messages .success {
+    color: #28a745;
+}
+
+.flash-messages .error {
+    color: #dc3545;
+}
+
+/* Dashboard Specific */
+.dashboard-container {
+    max-width: 600px;
+}
+
+.camera-container {
+    margin: 20px 0;
+    text-align: center;
+}
+
+#video {
+    border: 2px solid #007bff;
+    border-radius: 5px;
+}
+
+#capture-btn {
+    margin-top: 10px;
+}
+
+.gps-info, .face-info {
+    background: #e3f2fd;
+    padding: 10px;
+    border-radius: 5px;
+    margin: 10px 0;
+}
+
+.highlight {
+    font-weight: bold;
+    color: #007bff;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    margin: 20px 0;
+}
+
+th, td {
+    padding: 12px;
+    border: 1px solid #ddd;
+    text-align: center;
+}
+
+th {
+    background: #4caf50;
+    color: white;
+}
+
+tr:nth-child(even) {
+    background: #f2f2f2;
+}
+
+tr:hover {
+    background: #ddd;
+}
+
+.logout {
+    background: #dc3545;
+}
+
+.logout:hover {
+    background: #c82333;
+}

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Excel - Attendance System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
+        body { background: #eef2f7; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { font-size: 2rem; color: #1e3a8a; margin-bottom: 20px; }
+        .btn { background: #3b82f6; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; text-decoration: none; display: inline-block; margin-bottom: 20px; }
+        .btn:hover { background: #1e3a8a; }
+        .table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); }
+        .table th, .table td { padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; }
+        .table th { background: #3b82f6; color: white; }
+        .table tr:hover { background: #f9fafb; }
+        @media (max-width: 768px) {
+            .container { padding: 10px; }
+            .table { font-size: 0.85rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Attendance Data</h1>
+        <a href="{{ url_for('admin') }}" class="btn">Back to Admin</a>
+        {{ table|safe }}
+    </div>
+</body>
+</html>
