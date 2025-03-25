@@ -12,8 +12,9 @@ import smtplib
 from email.mime.text import MIMEText
 import random
 import base64
+import os
 
-# Function to establish database connection using Streamlit secrets
+# Database connection using Streamlit secrets (to be configured in Streamlit Cloud)
 def get_db_connection():
     try:
         conn = mysql.connector.connect(
@@ -27,19 +28,76 @@ def get_db_connection():
         st.error(f"Database connection failed: {err}")
         return None
 
+# Initialize database tables
+def init_db():
+    conn = get_db_connection()
+    if conn:
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS users (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    username VARCHAR(50) UNIQUE,
+                    email VARCHAR(100) UNIQUE,
+                    password VARCHAR(255),
+                    face_image LONGBLOB,
+                    position VARCHAR(100) DEFAULT 'Employee',
+                    is_admin BOOLEAN DEFAULT 0,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS attendance (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    user_id INT,
+                    login_time DATETIME,
+                    logout_time DATETIME,
+                    login_photo_path VARCHAR(255),
+                    logout_photo_path VARCHAR(255),
+                    login_latitude FLOAT,
+                    login_longitude FLOAT,
+                    logout_latitude FLOAT,
+                    logout_longitude FLOAT,
+                    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+                )
+            """)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS rota (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    rota_image LONGBLOB,
+                    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS notifications (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    message TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    is_read BOOLEAN DEFAULT 0,
+                    user_id INT,
+                    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+                )
+            """)
+            conn.commit()
+        except Error as err:
+            st.error(f"Error initializing database: {err}")
+        finally:
+            cursor.close()
+            conn.close()
+
 # Main application
 def main():
-    # Set page configuration for a professional look
+    # Page configuration for a polished look
     st.set_page_config(page_title="Attendance System", layout="wide", initial_sidebar_state="expanded")
 
-    # Custom CSS for enhanced UI
+    # Custom CSS for an attractive UI
     st.markdown("""
         <style>
         .main {background-color: #f0f2f6;}
-        .stButton>button {background-color: #4CAF50; color: white; border-radius: 5px;}
-        .stTextInput>label {font-weight: bold;}
-        .stSelectbox>label {font-weight: bold;}
-        .stFileUploader>label {font-weight: bold;}
+        .stButton>button {background-color: #4CAF50; color: white; border-radius: 8px; padding: 10px;}
+        .stTextInput>label, .stSelectbox>label, .stFileUploader>label {font-weight: bold; color: #333;}
+        .stSidebar {background-color: #e0e7ff;}
+        .stExpander {background-color: #ffffff; border-radius: 5px; padding: 10px;}
         </style>
     """, unsafe_allow_html=True)
 
@@ -52,11 +110,12 @@ def main():
             pages.append("Admin")
         pages.append("Logout")
     
-    selected_page = st.sidebar.selectbox("Navigate", pages, key="nav_selectbox")
+    selected_page = st.sidebar.selectbox("Navigate", pages, key="nav_selectbox", 
+                                        help="Choose a page to explore the system")
 
-    # Page rendering based on selection
+    # Page rendering
     if selected_page == "Login":
-        st.header("🔑 Login")
+        st.header("🔑 Login to Your Account")
         with st.form("login_form"):
             email = st.text_input("Email")
             password = st.text_input("Password", type="password")
@@ -83,7 +142,7 @@ def main():
                     conn.close()
 
     elif selected_page == "Register":
-        st.header("📝 Register")
+        st.header("📝 Register a New User")
         with st.form("register_form"):
             username = st.text_input("Username")
             email = st.text_input("Email")
@@ -133,19 +192,21 @@ def main():
                             otp = ''.join([str(random.randint(0, 9)) for _ in range(6)])
                             st.session_state['otp'] = otp
                             st.session_state['reset_email'] = email
-                            sender = "your_email@gmail.com"  # Replace with your email
+                            sender = "afreedsk247@gmail.com"  # Replace with your email
                             msg = MIMEText(f"Your OTP for password reset is: {otp}")
                             msg['Subject'] = "Password Reset OTP"
                             msg['From'] = sender
                             msg['To'] = email
                             with smtplib.SMTP('smtp.gmail.com', 587) as server:
                                 server.starttls()
-                                server.login(sender, "your_app_password")  # Replace with your App Password
+                                server.login(sender, "lcjz csqo resu uwxh")  # Replace with your App Password
                                 server.send_message(msg)
                             st.success("OTP sent to your email!")
                             st.session_state['forgot_password_step'] = 1
                         else:
                             st.error("Email not found")
+                    except Exception as e:
+                        st.error(f"Failed to send OTP: {e}")
                     finally:
                         cursor.close()
                         conn.close()
@@ -186,42 +247,36 @@ def main():
         if 'user_id' not in st.session_state:
             st.error("Please log in first")
         else:
-            st.header("📊 Dashboard")
+            st.header(f"📊 Welcome, {st.session_state['username']}")
             conn = get_db_connection()
             if conn:
                 try:
                     cursor = conn.cursor(dictionary=True)
-                    # User details
                     cursor.execute("SELECT email, position, created_at, face_image FROM users WHERE id = %s", 
                                   (st.session_state['user_id'],))
                     user = cursor.fetchone()
                     user_face_image_base64 = base64.b64encode(user['face_image']).decode('utf-8') if user['face_image'] else None
 
-                    # Last attendance
                     cursor.execute("SELECT login_time, logout_time FROM attendance WHERE user_id = %s ORDER BY login_time DESC LIMIT 1", 
                                   (st.session_state['user_id'],))
                     last_attendance = cursor.fetchone()
 
-                    # 30-day attendance
                     cursor.execute("SELECT DATE(login_time) as date FROM attendance WHERE user_id = %s AND login_time >= CURDATE() - INTERVAL 30 DAY", 
                                   (st.session_state['user_id'],))
                     attendance_dates = [row['date'] for row in cursor.fetchall()]
 
-                    # Notifications
                     cursor.execute("SELECT message, created_at FROM notifications WHERE user_id = %s AND is_read = 0 ORDER BY created_at DESC", 
                                   (st.session_state['user_id'],))
                     notifications = cursor.fetchall()
 
-                    # Latest rota
                     cursor.execute("SELECT rota_image FROM rota ORDER BY uploaded_at DESC LIMIT 1")
                     rota = cursor.fetchone()
                     rota_image_base64 = base64.b64encode(rota['rota_image']).decode('utf-8') if rota else None
 
-                    # Layout
                     col1, col2 = st.columns([1, 2])
                     with col1:
                         if user_face_image_base64:
-                            st.image(f"data:image/jpeg;base64,{user_face_image_base64}", width=150)
+                            st.image(f"data:image/jpeg;base64,{user_face_image_base64}", width=150, caption="Profile Photo")
                         st.write(f"**Email:** {user['email']}")
                         st.write(f"**Position:** {user['position']}")
                         st.write(f"**Joined:** {user['created_at'].strftime('%Y-%m-%d')}")
@@ -238,11 +293,10 @@ def main():
                         today = datetime.now().date()
                         for i in range(30):
                             date = today - timedelta(days=i)
-                            status = "✅" if date in attendance_dates else "❌"
+                            status = "✅ Present" if date in attendance_dates else "❌ Absent"
                             st.write(f"{date}: {status}")
 
-                    # Attendance tracking
-                    st.subheader("Attendance Tracking")
+                    st.subheader("Record Attendance")
                     if st.session_state.get('logged_in_today', False):
                         with st.form("logout_form"):
                             logout_photo = st.file_uploader("Upload Logout Photo", type=["jpg", "png"])
@@ -256,7 +310,6 @@ def main():
                         if submit_login and login_photo:
                             process_login(login_photo)
 
-                    # Notifications and Rota
                     st.subheader("Notifications")
                     for n in notifications:
                         st.info(f"{n['created_at']}: {n['message']}")
@@ -367,7 +420,7 @@ def main():
         st.success("Logged out successfully")
         st.experimental_rerun()
 
-# Helper functions for attendance tracking
+# Attendance tracking functions
 def process_login(login_photo):
     conn = get_db_connection()
     if conn:
@@ -429,4 +482,5 @@ def process_logout(logout_photo):
             conn.close()
 
 if __name__ == "__main__":
+    init_db()
     main()
