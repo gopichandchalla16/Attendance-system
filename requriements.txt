@@ -4,4 +4,4 @@ geocoder
 pandas
 face_recognition
 numpy
-werkzeug
+werkzeug==2.0.3
