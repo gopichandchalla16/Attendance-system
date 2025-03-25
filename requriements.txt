@@ -1,7 +1,7 @@
-streamlit
-mysql-connector-python
-geocoder
-pandas
-face_recognition
-numpy
-werkzeug==2.0.3
+streamlit==1.31.0
+mysql-connector-python==8.0.33
+geocoder==1.38.1
+pandas==2.0.3
+face_recognition==1.3.0
+numpy==1.24.3
+werkzeug==2.3.7
