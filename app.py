@@ -14,7 +14,6 @@ import random
 import base64
 import os
 
-# Database connection using Streamlit secrets (to be configured in Streamlit Cloud)
 def get_db_connection():
     try:
         conn = mysql.connector.connect(
@@ -28,7 +27,6 @@ def get_db_connection():
         st.error(f"Database connection failed: {err}")
         return None
 
-# Initialize database tables
 def init_db():
     conn = get_db_connection()
     if conn:
@@ -85,12 +83,8 @@ def init_db():
             cursor.close()
             conn.close()
 
-# Main application
 def main():
-    # Page configuration for a polished look
     st.set_page_config(page_title="Attendance System", layout="wide", initial_sidebar_state="expanded")
-
-    # Custom CSS for an attractive UI
     st.markdown("""
         <style>
         .main {background-color: #f0f2f6;}
@@ -101,7 +95,6 @@ def main():
         </style>
     """, unsafe_allow_html=True)
 
-    # Sidebar navigation
     if 'user_id' not in st.session_state:
         pages = ["Login", "Register", "Forgot Password"]
     else:
@@ -113,7 +106,6 @@ def main():
     selected_page = st.sidebar.selectbox("Navigate", pages, key="nav_selectbox", 
                                         help="Choose a page to explore the system")
 
-    # Page rendering
     if selected_page == "Login":
         st.header("🔑 Login to Your Account")
         with st.form("login_form"):
@@ -420,7 +412,6 @@ def main():
         st.success("Logged out successfully")
         st.experimental_rerun()
 
-# Attendance tracking functions
 def process_login(login_photo):
     conn = get_db_connection()
     if conn:
