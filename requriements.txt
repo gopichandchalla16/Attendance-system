@@ -1,5 +1,7 @@
+streamlit
 mysql-connector-python
 geocoder
 pandas
 face_recognition
 numpy
+werkzeug
